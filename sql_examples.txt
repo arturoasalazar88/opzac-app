@@ -1,0 +1,17 @@
+SELECT * FROM `reservations` r join tours t ON t.id = r.tour_id WHERE t.id = 2;
+
+
+SELECT r.client, h.name, z.name from reservations r join hotels h on h.id = r.hotel_id join zones z on z.id = h.zone_id
+SELECT r.client, h.name, z.name from reservations r join hotels h on h.id = r.hotel_id join zones z on z.id = h.zone_id where z.id = 1
+
+
+$r = DB::table('reservations')->join('hotels','reservations.hotel_id','=','hotels.id')->join('zones','hotels.zone_id','=','zones.id')->where('zones.id',1)->select('reservations.client', 'hotels.name', 'zones.name')->get();
+
+reservas de tours con horario especifico todas las compañías
+SELECT r.client, t.id as tour_id, t.horario FROM `reservations` r JOIN tours t on t.id = r.tour_id WHERE t.horario = '12:30:00'
+
+
+//obtener el nombre de los tours que están en las reservas
+DB::table('reservations')->join('tours', 'reservations.tour_id','tours.id')->select('tours.name')->groupBy('tours.name')->get()->pluck('name');
+
+//

@@ -1,0 +1,9 @@
+image: arturosalazar88/alpine:ssh
+
+pipelines:
+  branches:
+    prod:
+      - step:
+          script: 
+          - sshpass -p $SSH_PASSWORD ssh -t -o "StrictHostKeyChecking no" -p 65002 $SSH_USER@212.107.19.1 ./update.sh
+          - echo "done"

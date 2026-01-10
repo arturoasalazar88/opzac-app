@@ -1,0 +1,105 @@
+Nuevas Funciones / Modificaciones / Agregados
+
+1. Roles de Usuario
+  Administrador : (Existe) CRUD Super Usuario
+  Operador :
+  Vendedor Punto de Venta :
+
+1.x Envio de Correos
+  Se enviará un correo de confirmación con un ID de la reserva a los clientes
+
+Nuevas Tablas
+
+  Clientes ¿? correos ¿?
+  Reservas_usuario
+  MANERA DE MANEJAR TOURS Y CERRARLOS
+  Costos - Niños - Adultos - Insen
+
+  Todos los tour tienen distintos precios para niños adultos insen
+
+Modificaciones a Tablas
+
+  Usuario nueva Columna comisión / nuevos roles
+  Reservas nueva columna Clientes o nueva columna Correo,
+           nueva columna tipo de pago
+           nueva columna estado (pendiente de pago / confirmada / ¿pagada comisión?)
+  Tours nueva columna dueño (Maxibus / Operadora)
+        nueva columna límite de lugares
+
+  campo para la comision para el operador
+  folio del cliente
+  con su folio al cliente
+  columna comision
+  columna TOTAL
+  columna resto
+
+ánotalo
+
+Folio -
+
+Preguntas
+  ¿ tour/personas	vendido? // ¿Se puede vender un tour?
+  Se guarda el tipo de pago ¿También el costo para generar la comisión? se genera por persona o es diferente por tour
+  ¿Cerar Tours/horarios? ¿Cómo es cerrar un horario?
+
+Pensar Cerrar Tours
+cerrar Tours/horarios	para	que	no	se	pueda	vender	mas	tours	en	ese	horario
+cerrar tours con horario especifico del día --- Esto sí ocupará algún registro tal vez.
+(colocar una columna en tour llamada ( ocupación en tiempo real ) para revisar qué tan lleno va, al cerrarlo para el día mandarlo a full)
+Se necesitaría revisar la hora para saber cuando reiniciar los tours?
+Se necesitaría crear una tabla tour_día para guardar y revisar la ocupación? Generarla día a día Algo tipo cron
+(Hacer una consulta antes de insertar alguna reserva para ver el límite del tour, agregando límite al tour con horario)
+
+Eventos -> cuando se cierre un tour se manda a full y se crea un nuevo registro para el día siguiente
+Eventos -> cuando llega al límite se cierra y se crea un nuevo registro para el día siguiente
+
+Eventos -> Pero qué tal sí nunca se llena no se generaría un nuevo tour del día siguiente
+
+
+Códigos de Barras / Código QR para los folios enviados por correo.
+
+
+PARTES DEL TUTORIAL PARA REVISAR LUEGO
+
+/// simple where clause
+$projects = Project::where('owner_id', auth()->id())->get();
+
+/// simple not authorized example
+
+if($project->user_id !== auth()->id()){
+  abort(403);
+}
+abort_if($project->user_id !== auth()->id(), 403)
+
+/// creating a mehtod within the user model, i guess
+abort_unless(auth()->user->owns($project), 403);
+
+// little bit of a hasMany Relation
+$u->reservations()->get()->first()->client_email;
+
+
+// little bit of a hasMany relation Tour -> Reservations
+
+$t->reservations()->get()->find(1)->client
+
+
+Cosas nuevas
+
+Maxi quiere selección exacta de lugares
+Bloquear reservas por tiempo tipo Omnibus
+
+Pagos con tarjetas
+Guardar los últimos 4 dígitos de la tarjeta
+
+Lista de espera a personas que no llegan. para mandarlos a otros horarios
+
+Operadora y Maxibus son entes completos y diferentes
+
+
+CITY PASS NEW YORK
+
+SMS twllio API Externa
+
+Operadores en hoteles rellenar hotel inmediato
+
+Comisiones por cada tipo de boleto
