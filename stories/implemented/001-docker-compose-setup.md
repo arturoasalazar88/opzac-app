@@ -1,4 +1,18 @@
-# Story: Docker Compose Setup for Operadora Zacatecas
+# Story 001: Docker Compose Setup for Operadora Zacatecas
+
+**Status:** Complete
+**Completion Date:** 2025-01-11
+
+---
+
+## Implementation Summary
+
+✅ Docker dev environment with PHP-FPM, Nginx, MariaDB, Redis, phpMyAdmin
+- Docker Compose multi-container setup with ARM64-compatible images
+- Verified working on Apple Silicon (M1), all services healthy
+- PHP 7.4-FPM, MariaDB 10.6, Nginx, Redis, Composer 1.x (Laravel 5.7 compat)
+
+---
 
 ## Overview
 Create a Docker Compose configuration to run the Operadora Zacatecas Laravel application locally for development purposes.
@@ -9,6 +23,7 @@ Create a Docker Compose configuration to run the Operadora Zacatecas Laravel app
 
 ### PHP Application Container
 - **PHP Version**: 7.1.3+ (use `php:7.4-fpm` for stability with Laravel 5.7)
+- **Composer Version**: 1.x (required - Laravel 5.7 is incompatible with Composer 2.x `installed.json` format)
 - **Required PHP Extensions**:
   - OpenSSL
   - PDO / PDO_MySQL
@@ -23,11 +38,11 @@ Create a Docker Compose configuration to run the Operadora Zacatecas Laravel app
 
 ### Web Server Container
 - **Nginx** or **Apache**
-- Configure to serve from `operadora/public/`
+- Configure to serve from `public_html/` (Laravel public folder moved outside app root)
 - Handle PHP-FPM upstream
 
 ### Database Container
-- **MySQL 5.7** (compatible with Laravel 5.7)
+- **MariaDB 10.6** (MySQL-compatible, ARM64/Apple Silicon support)
 - Default credentials:
   - Database: `operadora_db`
   - Username: `operadora`
@@ -93,33 +108,35 @@ DB_HOST=mysql
 # Change REDIS_HOST if using Redis
 REDIS_HOST=redis
 
-# Change MAIL_HOST if using Mailhog
-MAIL_HOST=mailhog
+# Change MAIL_HOST if using Mailpit
+MAIL_HOST=mailpit
 MAIL_PORT=1025
 ```
 
-### Volume Mount for .env
+### Volume Mount Strategy
+
+Mount the entire project root to preserve relative paths between `operadora/` and `public_html/`:
 
 ```yaml
 volumes:
-  - ./operadora/.env:/var/www/html/.env
+  - .:/var/www/html
 ```
 
-Or mount the entire operadora directory (recommended):
-
-```yaml
-volumes:
-  - ./operadora:/var/www/html
+This will create the following structure in the container:
+```
+/var/www/html/
+├── operadora/        # Laravel app with .env
+└── public_html/      # Public folder (Nginx serves from here)
 ```
 
-This will automatically include the `.env` file along with all application code.
+The `public_html/index.php` uses `../operadora/` paths which work correctly with this mount.
 
 ---
 
 ## Directory Structure to Create
 
 ```
-operadorazacatecas.com/
+opzac-app/
 ├── docker/
 │   ├── nginx/
 │   │   └── default.conf       # Nginx site configuration
@@ -128,9 +145,13 @@ operadorazacatecas.com/
 │   └── mysql/
 │       └── init.sql           # Optional: Initial database setup
 ├── docker-compose.yml         # Main compose file
-└── operadora/
-    └── .env                   # EXISTING - Mount this file into containers
+├── operadora/                 # Laravel app (without public/)
+│   └── .env                   # EXISTING - Mount this file into containers
+└── public_html/               # Laravel public folder (moved outside app root)
+    └── index.php              # Entry point (uses ../operadora/ paths)
 ```
+
+**Important:** The `public_html/` directory is the Laravel public folder, moved outside the `operadora/` directory for hosting compatibility. The `index.php` uses relative paths like `../operadora/vendor/autoload.php` to bootstrap the application.
 
 ---
 
@@ -140,13 +161,14 @@ operadorazacatecas.com/
 - Build from custom Dockerfile
 - Install Composer
 - Install required PHP extensions
-- Mount `./operadora` to `/var/www/html` (includes existing `.env`)
-- Working directory: `/var/www/html`
+- Mount project root `.` to `/var/www/html` (preserves relative paths)
+- Working directory: `/var/www/html/operadora`
 
 ### 2. `nginx` (Web Server)
 - Image: `nginx:alpine`
 - Ports: `8080:80`
-- Mount `./operadora` to `/var/www/html`
+- Mount project root `.` to `/var/www/html`
+- Serve from `/var/www/html/public_html`
 - Mount custom nginx config
 - Depends on: `app`
 
@@ -161,8 +183,8 @@ operadorazacatecas.com/
 - Image: `redis:alpine`
 - Ports: `6379:6379`
 
-### 5. `mailhog` (Email Testing - Optional)
-- Image: `mailhog/mailhog`
+### 5. `mailpit` (Email Testing - Optional)
+- Image: `axllent/mailpit` (ARM64-compatible replacement for Mailhog)
 - Ports: `8025:8025` (Web UI), `1025:1025` (SMTP)
 
 ### 6. `node` (Asset Compilation - Optional)
@@ -221,7 +243,11 @@ docker-compose build --no-cache
 ## Notes
 
 - Laravel 5.7 is an older version; PHP 7.4 is the best balance of compatibility and security
-- MySQL 5.7 matches the production environment expectations
+- **Composer 1.x** is required - Laravel 5.7's PackageManifest is incompatible with Composer 2.x's `installed.json` format
+- **MariaDB 10.6** is used instead of MySQL 5.7 for ARM64/Apple Silicon compatibility (fully MySQL-compatible)
+- **Mailpit** is used instead of Mailhog for ARM64/Apple Silicon compatibility
 - The existing `.env` file at `operadora/.env` will be mounted directly - update `DB_HOST`, `REDIS_HOST`, and `MAIL_HOST` values for Docker networking
-- The `public_html/` directory is separate from `operadora/public/` - verify symlinks if needed
+- The `public_html/` directory IS the Laravel public folder (moved outside `operadora/` for hosting). The `index.php` uses `../operadora/` relative paths to bootstrap the app
+- The entire project root is mounted to `/var/www/html` to preserve these relative paths
 - Twilio credentials in the existing `.env` should be kept secure and not committed to version control
+- Use `operadora/.env.docker.example` as a template for Docker-specific environment settings

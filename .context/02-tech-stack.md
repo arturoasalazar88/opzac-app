@@ -82,7 +82,49 @@ MAIL_HOST=smtp.mailtrap.io
 MAIL_PORT=2525
 ```
 
-## Development Commands
+## Docker Development Environment
+
+### Container Stack
+- **PHP**: 7.4-fpm with required extensions
+- **Composer**: 1.x (required - Laravel 5.7 incompatible with Composer 2.x)
+- **MariaDB**: 10.6 (MySQL-compatible, ARM64/Apple Silicon support)
+- **Nginx**: Alpine (serves from `public_html/`)
+- **Redis**: Alpine (optional cache)
+- **Mailpit**: Email testing (ARM64-compatible replacement for Mailhog)
+- **Node**: 12-alpine (asset compilation)
+
+### Docker Commands
+```bash
+# Start all services
+docker-compose up -d
+
+# Run artisan commands
+docker-compose exec app php artisan migrate
+docker-compose exec app php artisan db:seed
+
+# Run composer
+docker-compose exec app composer install
+
+# Run npm (asset compilation)
+docker-compose run --rm node npm install
+docker-compose run --rm node npm run dev
+
+# Access MySQL CLI
+docker-compose exec mysql mysql -u operadora -p operadora_db
+```
+
+### Access Points
+- Application: http://localhost:8080
+- phpMyAdmin: http://localhost:8081 (auto-login, 512MB upload limit for DB restores)
+- Mailpit UI: http://localhost:8025
+- MySQL/MariaDB: localhost:3306
+
+### Compatibility Notes
+- **Composer 1.x required**: Laravel 5.7's PackageManifest is incompatible with Composer 2.x's `installed.json` format
+- **MariaDB instead of MySQL**: MySQL 5.7 has no ARM64 image; MariaDB 10.6 is fully compatible
+- **Mailpit instead of Mailhog**: Mailhog has no ARM64 image
+
+## Native Development Commands
 ```bash
 # Database migration
 php artisan migrate

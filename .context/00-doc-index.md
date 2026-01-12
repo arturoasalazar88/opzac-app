@@ -22,6 +22,8 @@
 | How to configure environment? | `02-tech-stack.md` |
 | What PHP extensions needed? | `02-tech-stack.md` |
 | How to run artisan commands? | `02-tech-stack.md` |
+| How to run with Docker? | `02-tech-stack.md` (Docker section) |
+| Docker compatibility notes? | `02-tech-stack.md` (Composer 1.x, MariaDB, Mailpit) |
 
 ### Code Architecture
 | Question | Read |
